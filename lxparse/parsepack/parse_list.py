@@ -7,9 +7,11 @@ import re,math
 class ListExtractor:
     def __init__(self):
         self.ARTICLE_NUMS = None
+        self.LINK_NUMS = None
 
-    def extractor(self, html, xpath_list,article_nums):
+    def extractor(self, html, xpath_list,article_nums,link_nums):
         self.ARTICLE_NUMS = article_nums
+        self.LINK_NUMS = link_nums
         self.html = html
         element = etree.HTML(html)
         if xpath_list:
@@ -33,7 +35,7 @@ class ListExtractor:
         lens_table = 0
         table = []
         for xpath_list in xpath_lists:
-            if lens_table>150:
+            if lens_table>self.LINK_NUMS:
                 break
             first = e.xpath(xpath_list + '/@href')
             if first and len(''.join(e.xpath(xpath_list+'//text()')))>5:

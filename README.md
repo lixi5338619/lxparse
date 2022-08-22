@@ -49,7 +49,7 @@ lx = LxParse()
 list_html = ""
 lx.parse_list(list_html)
 # 指定解析规则
-lx.parse_list(list_html,xpath_list="/div[@id='lx']/a")
+lx.parse_list(list_html,xpath_list='/div[@id="lx"]/a')
 
 detail_html = ""
 lx.parse_detail(detail_html)

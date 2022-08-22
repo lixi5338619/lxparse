@@ -5,7 +5,7 @@
 
 from lxml import etree
 from lxpy import html_format
-from lxparse.parsepack import title_parse,date_parse,author_parse,source_parse,content_parse,list_parse,parse_loc
+from lxparse.parsepack import *
 
 # Resolution ListURL and ArticleDetail.
 
@@ -15,12 +15,13 @@ class LxParse():
         self.element = None
 
 
-    def parse_list(self,html,xpath_list=None,article_nums=7):
+    def parse_list(self,html,xpath_list=None,article_nums=7,link_nums=150):
         """
            xpath_list : self specified list xpath
            article_nums : Number of list page URLs
+           link_nums : ListPage MAX Links
         """
-        result = list_parse.extractor(html,xpath_list,article_nums)
+        result = list_parse.extractor(html,xpath_list,article_nums,link_nums)
         return result
 
 
