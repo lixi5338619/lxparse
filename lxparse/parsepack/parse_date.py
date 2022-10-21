@@ -64,11 +64,13 @@ class DateExtractor:
             '//meta[starts-with(@pubdate, "pubdate")]/@content',
         ]
 
-    def extractor(self, element: HtmlElement, date_xpath) -> str:
+    def extractor(self, element: HtmlElement, date_xpath,dateEnable:bool) -> str:
         publish_time = (self.extract_from_user_xpath(date_xpath, element)
                         or self.extract_from_meta(element)
                         or self.extract_from_text(element))
-        return publish_tools(publish_time)
+        if dateEnable:
+            publish_time = publish_tools(publish_time)
+        return publish_time
 
 
     def extract_from_user_xpath(self, publish_time_xpath: str, element: HtmlElement) -> str:
@@ -112,7 +114,7 @@ def publish_tools(publish_time:str):
     if not publish_time:
         return
     publish_time = publish_time.replace('\n\t\t\t\t\t\t\t\t',' ').replace('\n','').rstrip().lstrip()
-    publish_time = publish_time.replace('Februaryruary','February').replace('uesday,','').replace('hursday,','').replace(' 12:00pm','')
+    publish_time = publish_time.replace('Februaryruary','February').replace('uesday,','').replace('hursday,','').replace(' 12:00pm','').replace('Published: ','')
     publish_time = publish_time.replace('Februar ','February ').replace('Januar ','January ').replace('März ','March ').replace('juni ','January ').replace('Marchch ','March ').replace('Sept ','September ')
     publish_time = publish_time.replace(' Jan ', ' January ').replace(' Feb ', ' February ').replace(' Mar ', ' March ').replace(' Apr ', ' April ').replace(' May ', ' May ').replace(' Jun ', ' June ').replace(' Jul ', ' July ').replace(' Aug ', ' August ').replace(' Sept ',' September ').replace(' Oct ', ' October ').replace(' Nov ', ' November ').replace(' Dec ', ' December ').replace(' Sep ', ' September ')
     publish_time = publish_time.replace(' Juli ',' July ').replace(' juni ',' June ')
@@ -131,12 +133,34 @@ def publish_tools(publish_time:str):
         'Dec': 'December',
         'Sep': 'September',
     }
+
     if publish_time[0].isupper() and publish_time[:3].isalpha() and publish_time[3]==' ':
         try:
-            publish_time = month[publish_time[:3]]+publish_time[3:]
-            publish_time = datetime.datetime.strptime(publish_time, '%B %d, %Y')
-            return str(publish_time)
-        except:return publish_time
+            if ' Updated: ' in publish_time: publish_time = publish_time.split(' Updated: ')[0]
+
+            if 'AM' in publish_time or 'PM' in publish_time and re.findall('\d\d:\d\d',publish_time):
+                if 'PM' in publish_time:
+                    h = re.findall('(\d\d):\d\d', publish_time)[0]
+                    publish_time = publish_time.replace(h,str(int(re.findall('(\d\d):\d\d',publish_time)[0])+12))
+                publish_time = month[publish_time[:3]]+publish_time[3:].replace(' AM','').replace(' PM','')
+                if re.findall('\d\d:\d\d:\d\d',publish_time):
+                    publish_time = datetime.datetime.strptime(publish_time, '%B %d, %Y %H:%M:%S')
+                else:
+                    publish_time = datetime.datetime.strptime(publish_time, '%B %d, %Y %H:%M')
+                return str(publish_time)
+            else:
+                publish_time = month[publish_time[:3]]+publish_time[3:]
+                publish_time = datetime.datetime.strptime(publish_time, '%B %d, %Y')
+                return str(publish_time)
+        except:
+            return publish_time
+
+    if publish_time[0].isupper() and re.findall('\d\d, \d\d\d\d \d\d:\d\d',publish_time):
+        if ' Updated: ' in publish_time:publish_time = publish_time.split(' Updated: ')[0]
+        if 'PM' in publish_time:
+            h = re.findall('(\d\d):\d\d', publish_time)[0]
+            publish_time = publish_time.replace(h, str(int(re.findall('(\d\d):\d\d', publish_time)[0]) + 12))
+        return str(datetime.datetime.strptime(publish_time.replace(' AM', '').replace(' PM', ''), '%B %d, %Y %H:%M'))
 
     if ' PM EST' in publish_time or ' AM EST' in publish_time:
         publish_time = publish_time.replace(' PM EST','').replace('on ','').replace(' AM EST','')
@@ -149,6 +173,7 @@ def publish_tools(publish_time:str):
             return publish_time
         else:
             publish_time = datetime.datetime.strptime(publish_time, '%d/%m/%Y  %H:%M')
+            print(publish_time)
             return str(publish_time)
     if ' PM' in publish_time:
         publish_time = publish_time.replace(' PM','')
@@ -214,6 +239,8 @@ def publish_tools(publish_time:str):
         publish_time = publish_time.replace('来源：','')
     elif re.findall('发布日期：.*?年.*?月.*?日', publish_time):
         return publish_tools(''.join(re.findall('发布日期：(.*?年.*?月.*?日)', publish_time)))
+    elif re.findall('发稿时间：\d{4}-\d\d-\d\d \d\d:\d\d:\d\d ', publish_time):
+        return ''.join(re.findall('发稿时间：(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)', publish_time))
 
 
     publish_time = publish_time.replace('年', '-').replace('月', '-').replace('日', '').replace('/', '-')
@@ -237,6 +264,11 @@ def publish_tools(publish_time:str):
                 return None
             else:
                 publish_time += ' 00:00:00'
+        elif re.findall('\d{10}',publish_time):
+            return DateGo.timec_change_dtime(publish_time)
+
+    elif len(publish_time)==13 and re.findall('\d{13}',publish_time):
+        return DateGo.timec_change_dtime(publish_time)
     elif len(publish_time) == 3 and re.findall('\d-\d',publish_time):
         p = publish_time.split('-')
         publish_time = f'{year}-0{p[0]}-0{p[1]} 00:00:00'
