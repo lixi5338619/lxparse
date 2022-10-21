@@ -10,7 +10,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 setup(
     name="lxparse",
     url="https://github.com/lixi5338619/lxparse",
-    version= '1.0.3',
+    version= '1.0.8',
     description="A library for intelligently parsing list page links and details page contents",
     long_description=long_description,
     long_description_content_type='text/markdown',
