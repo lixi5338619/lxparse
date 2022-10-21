@@ -36,8 +36,8 @@ class SourceExtractor:
 
     def extractor(self, element, source_xpath):
         if source_xpath:
-            author = ''.join(element.xpath(source_xpath))
-            return author
+            source = ''.join(element.xpath(source_xpath))
+            return source
         text = ''.join(element.xpath('.//text()'))
         for pattern in self.SOURCE_PATTERN:
             author_obj = re.search(pattern, text)
