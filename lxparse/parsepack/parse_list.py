@@ -137,7 +137,7 @@ class ListExtractor:
                 stp = True
                 break
         if stp:
-            for url in result:
+            for url in result[::]:
                 if 'news' not in url or 'detail' not in url:
                     result.remove(url)
         return result
